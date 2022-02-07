@@ -1,0 +1,4 @@
+# This file is list that is ignored by git.
+# Especially, src/.vscode must be ignored becasue of that heavy size.
+
+src/.vscode
