@@ -83,3 +83,4 @@ BEST_EFFORT は、コントローラに何か問題が発生した場合でも�
    - `twist_conroller/parameter_updates` represents `dynemic_reconfigure/config`
 4. You can publish `twist_controller/command`
 
+## Dualsense mapping
