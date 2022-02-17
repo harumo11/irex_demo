@@ -2,13 +2,15 @@
 // This program has a tiny functionanality to control cartesian velocity TCP.
 // This program subscribes sensor_msgs/joy and publishes geometry_msgs/twist.
 
-#include <iostream>
-#include <vector>
-#include <cmath>
+#include "/home/harumo/catkin_ws/src/irex_demo/src/ur_twist_manager.hpp"
+#include "/home/harumo/catkin_ws/src/irex_demo/src/preshape.hpp"
 #include <algorithm>
-#include <ros/ros.h>
+#include <cmath>
 #include <geometry_msgs/Twist.h>
+#include <iostream>
+#include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
+#include <vector>
 
 geometry_msgs::Twist create_initialized_twist_msgs()
 {
@@ -49,10 +51,32 @@ public:
     };
 };
 
+class limiter
+{
+private:
+    const double max_limit;
+    const double min_limit;
+
+public:
+    limiter(const double limit) : max_limit(limit), min_limit(-1 * limit)
+    {
+    }
+
+    double limit(const double input)
+    {
+        double limited_output;
+        limited_output = std::min(this->max_limit, input);
+        limited_output = std::max(this->min_limit, limited_output);
+        return limited_output;
+    }
+};
+
 int main(int argc, char *argv[])
 {
     const int CONTROL_HZ = 100;
-    const double TCP_VEL_SCALL = 0.05;
+    const double TCP_VEL_SCALL = 0.5;
+    const double VEL_LIMIT = 0.5; //Limit max velocity between -0.5 and 0.5 ms
+    limiter vel_limiter(VEL_LIMIT);
 
     ros::init(argc, argv, "ur_teleop_node");
     ros::NodeHandle node_handler;
@@ -60,20 +84,25 @@ int main(int argc, char *argv[])
     JoySubscriber joy_listener;
     ros::Subscriber joy_subscriber = node_handler.subscribe("joy", 1, &JoySubscriber::on_message_recieved, &joy_listener);
     ros::Rate timer(CONTROL_HZ);
+    ur_twist_manager ur_manager(node_handler);
+    ur_manager.enable_twist_mode();
+    preshape preshape_x(false);
+    preshape preshape_y(false);
+    preshape preshape_z(false);
 
     while (ros::ok())
     {
-        ros::spinOnce();
         auto recieved_joy_message = joy_listener.recieved_message;
 
         auto tcp_vel_message = create_initialized_twist_msgs();
-        tcp_vel_message.linear.x = TCP_VEL_SCALL * recieved_joy_message.axes.at(1);
-        tcp_vel_message.linear.y = TCP_VEL_SCALL * recieved_joy_message.axes.at(0);
-        tcp_vel_message.linear.z = TCP_VEL_SCALL * recieved_joy_message.axes.at(7);
+        tcp_vel_message.linear.x = preshape_x.step(vel_limiter.limit(recieved_joy_message.axes.at(1)));
+        tcp_vel_message.linear.y = preshape_y.step(vel_limiter.limit(recieved_joy_message.axes.at(0)));
+        tcp_vel_message.linear.z = preshape_z.step(vel_limiter.limit(recieved_joy_message.axes.at(7)));
 
         //ROS_INFO_STREAM(joy_listener.recieved_message);
         ur_tcp_vel_publisher.publish(tcp_vel_message);
 
+        ros::spinOnce();
         timer.sleep();
     }
 

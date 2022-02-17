@@ -86,3 +86,13 @@ BEST_EFFORT は、コントローラに何か問題が発生した場合でも�
 4. You can publish `twist_controller/command`
 
 ## Dualsense mapping
+
+## StertUP
+
+```
+roslaunch irex_demo enable_robot.launch
+```
+
+In teaching pendant 
+
+- Run `External Control` 
