@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <deque>
+#include <iomanip>
 #include <iostream>
 
 /**
@@ -77,7 +78,7 @@ double preshape::step(const double u)
 void preshape::print_u_half_history()
 {
     for (auto e : this->u_half_history) {
-        std::cout << e << " ";
+        std::cout << std::setprecision(5) << e << " ";
     }
     std::cout << std::endl;
 }
