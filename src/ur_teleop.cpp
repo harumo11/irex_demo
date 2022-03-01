@@ -74,7 +74,7 @@ public:
 int main(int argc, char *argv[])
 {
     const int CONTROL_HZ = 100;
-    const double TCP_VEL_SCALL = 0.2;
+    const double TCP_VEL_SCALL = 0.15;
     const double VEL_LIMIT = 0.1; //Limit max velocity between -0.5 and 0.5 ms
     limiter vel_limiter(VEL_LIMIT);
 
@@ -95,12 +95,16 @@ int main(int argc, char *argv[])
         auto recieved_joy_message = joy_listener.recieved_message;
 
         auto tcp_vel_message = create_initialized_twist_msgs();
-        tcp_vel_message.linear.x = preshape_x.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(1)));
-        tcp_vel_message.linear.y = preshape_y.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(0)));
-        tcp_vel_message.linear.z = preshape_z.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(7)));
-        //tcp_vel_message.linear.x = TCP_VEL_SCALL * (recieved_joy_message.axes.at(1));
-        //tcp_vel_message.linear.y = TCP_VEL_SCALL * (recieved_joy_message.axes.at(0));
-        //tcp_vel_message.linear.z = TCP_VEL_SCALL * (recieved_joy_message.axes.at(7));
+        if (recieved_joy_message.axes.at(4) < 0)
+        {
+            tcp_vel_message.linear.x = preshape_x.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(1)));
+            tcp_vel_message.linear.y = preshape_y.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(0)));
+            tcp_vel_message.linear.z = preshape_z.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(6)));
+        }
+
+        tcp_vel_message.linear.x = TCP_VEL_SCALL * (recieved_joy_message.axes.at(1));
+        tcp_vel_message.linear.y = TCP_VEL_SCALL * (recieved_joy_message.axes.at(0));
+        tcp_vel_message.linear.z = TCP_VEL_SCALL * (recieved_joy_message.axes.at(6));
 
         //ROS_INFO_STREAM(joy_listener.recieved_message);
         ur_tcp_vel_publisher.publish(tcp_vel_message);
