@@ -2,8 +2,8 @@
 // This program has a tiny functionanality to control cartesian velocity TCP.
 // This program subscribes sensor_msgs/joy and publishes geometry_msgs/twist.
 
-#include "/home/harumo/catkin_ws/src/irex_demo/src/ur_twist_manager.hpp"
-#include "/home/harumo/catkin_ws/src/irex_demo/src/preshape.hpp"
+#include "./preshape.hpp"
+#include "./ur_twist_manager.hpp"
 #include <algorithm>
 #include <cmath>
 #include <geometry_msgs/Twist.h>
@@ -25,8 +25,7 @@ geometry_msgs::Twist create_initialized_twist_msgs()
     return twist_msgs;
 }
 
-class JoySubscriber
-{
+class JoySubscriber {
 public:
     sensor_msgs::Joy recieved_message;
 
@@ -36,7 +35,7 @@ public:
         ROS_INFO_STREAM("JoySubscriber is initialized");
     };
 
-    void on_message_recieved(const sensor_msgs::Joy &joy_msgs)
+    void on_message_recieved(const sensor_msgs::Joy& joy_msgs)
     {
         this->recieved_message = joy_msgs;
     };
@@ -51,14 +50,15 @@ public:
     };
 };
 
-class limiter
-{
+class limiter {
 private:
     const double max_limit;
     const double min_limit;
 
 public:
-    limiter(const double limit) : max_limit(limit), min_limit(-1 * limit)
+    limiter(const double limit)
+        : max_limit(limit)
+        , min_limit(-1 * limit)
     {
     }
 
@@ -71,7 +71,7 @@ public:
     }
 };
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     const int CONTROL_HZ = 100;
     const double TCP_VEL_SCALL = 0.15;
@@ -90,21 +90,17 @@ int main(int argc, char *argv[])
     preshape preshape_y(false);
     preshape preshape_z(false);
 
-    while (ros::ok())
-    {
+    while (ros::ok()) {
         auto recieved_joy_message = joy_listener.recieved_message;
 
         auto tcp_vel_message = create_initialized_twist_msgs();
-        if (recieved_joy_message.axes.at(4) < 0)
-        {
+        if (recieved_joy_message.axes.at(4) < 0) {
             ROS_INFO_STREAM("preshape on");
             ROS_INFO_STREAM(recieved_joy_message.axes.at(4));
             tcp_vel_message.linear.x = preshape_x.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(1)));
             tcp_vel_message.linear.y = preshape_y.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(0)));
             tcp_vel_message.linear.z = preshape_z.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(5)));
-        }
-        else
-        {
+        } else {
             tcp_vel_message.linear.x = TCP_VEL_SCALL * (recieved_joy_message.axes.at(1));
             tcp_vel_message.linear.y = TCP_VEL_SCALL * (recieved_joy_message.axes.at(0));
             tcp_vel_message.linear.z = TCP_VEL_SCALL * (recieved_joy_message.axes.at(5));
