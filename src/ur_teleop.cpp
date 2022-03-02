@@ -97,14 +97,18 @@ int main(int argc, char *argv[])
         auto tcp_vel_message = create_initialized_twist_msgs();
         if (recieved_joy_message.axes.at(4) < 0)
         {
+            ROS_INFO_STREAM("preshape on");
+            ROS_INFO_STREAM(recieved_joy_message.axes.at(4));
             tcp_vel_message.linear.x = preshape_x.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(1)));
             tcp_vel_message.linear.y = preshape_y.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(0)));
-            tcp_vel_message.linear.z = preshape_z.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(6)));
+            tcp_vel_message.linear.z = preshape_z.step(TCP_VEL_SCALL * (recieved_joy_message.axes.at(5)));
         }
-
-        tcp_vel_message.linear.x = TCP_VEL_SCALL * (recieved_joy_message.axes.at(1));
-        tcp_vel_message.linear.y = TCP_VEL_SCALL * (recieved_joy_message.axes.at(0));
-        tcp_vel_message.linear.z = TCP_VEL_SCALL * (recieved_joy_message.axes.at(6));
+        else
+        {
+            tcp_vel_message.linear.x = TCP_VEL_SCALL * (recieved_joy_message.axes.at(1));
+            tcp_vel_message.linear.y = TCP_VEL_SCALL * (recieved_joy_message.axes.at(0));
+            tcp_vel_message.linear.z = TCP_VEL_SCALL * (recieved_joy_message.axes.at(5));
+        }
 
         //ROS_INFO_STREAM(joy_listener.recieved_message);
         ur_tcp_vel_publisher.publish(tcp_vel_message);

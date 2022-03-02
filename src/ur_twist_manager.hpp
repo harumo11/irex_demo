@@ -9,6 +9,7 @@
 #include <std_msgs/String.h>
 #include <string>
 #include <vector>
+#include <functional>
 
 class ur_twist_manager
 {
